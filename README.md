@@ -101,5 +101,7 @@ Run:
 Your new file named as '.env' must look like this: 
 
 DATABASE_URL=postgres://judge:your_secure_password@localhost/judge_brains 
+
 TELEGRAM_TOKEN=telegram_token_here 
+
 DISCORD_TOKEN=discord_token_here
