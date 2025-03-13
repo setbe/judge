@@ -44,12 +44,36 @@ Not supported
 
 `\q`
 
-## Your newly created .env file
+## Environment Variables
 
-Your new file named as '.env' must look like this: 
+### Bash
 
-DATABASE_URL=postgres://judge:your_secure_password@localhost/judge_brains 
+`nano ~/.bashrc`
 
-TELEGRAM_TOKEN=telegram_token_here 
+`export JUDGE_DATABASE_URL="postgres://judge:your_secure_password@localhost/judge_brains"`
 
-DISCORD_TOKEN=discord_token_here
+`export JUDGE_TELEGRAM_TOKEN="telegram_token_here"`
+
+`export JUDGE_DISCORD_TOKEN="discord_token_here"`
+
+`source ~/.bashrc`
+
+## Installing D++
+
+[Installing D++ Guide](https://dpp.dev/md_docpages_01_installing.html)
+
+[D++ Github](https://github.com/brainboxdotcc/DPP)
+
+## Compiling
+
+To build:
+
+`make release`
+
+To run:
+
+`make run`
+
+or:
+
+`./build/judge`
