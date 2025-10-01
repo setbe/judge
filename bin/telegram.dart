@@ -91,52 +91,51 @@ Future<(Person, Person?)> handleTelegramUserUpdate(
   return (person, target);
 }
 
+/// Загальний обробник Telegram-повідомлення
+Future<void> _handleTelegramMessage(TeleDart teledart, TeleDartMessage message, bool Function(String) isCommandCheck) async {
+  if (!EnvService.instance.inWhitelist(message.chat.id, Platform.telegram)) return;
+
+  var (person, target) = await handleTelegramUserUpdate(message);
+  final text = message.text ?? "";
+
+  CommandResult res = CommandResult(text: "");
+
+  if (isCommandCheck(text)) {
+    res = await Judge.handleCommand(person, target, text);
+  } else {
+    final diceRes = await _handleDice(message);
+    if (diceRes != null) res = diceRes;
+  }
+
+  if (res.text.isEmpty) return;
+
+  if (res.text.startsWith("===== Person Debug =====")) {
+    res.text += "\nchat ID: ${message.chat.id}";
+  }
+
+  Message? botMsg;
+  if (res.hasImage) {
+    final path = person.pollLastGeneratedImage;
+    if (path != null) {
+      botMsg = await teledart.sendPhoto(message.chat.id, io.File(path), caption: res.text);
+    }
+  } else {
+    botMsg = await teledart.sendMessage(message.chat.id, res.text);
+  }
+
+  if (botMsg != null) {
+    await _deleteTelegramMessagesDelayed(teledart, res, botMsg, message);
+  }
+}
+
 /// Реєстрація обробників подій Telegram
 Future<void> _registerTelegramHandlers(TeleDart teledart) async {
-  teledart.onMessage().listen((message) async {
-    // Якщо айді чату не в білому списку, ми ігноруємо повідомлення
-    if (!EnvService.instance.inWhitelist(message.chat.id, Platform.telegram)) {
-      return;
-    }
-    // Оновлення або створення користувача
-    var (person, target) = await handleTelegramUserUpdate(message);
+  // Обробка /команд
+  teledart.onCommand().listen((msg) => _handleTelegramMessage(teledart, msg, (text) => text.startsWith("/")));
 
-    // Обробка текстових повідомлень
-    final text = message.text ?? "";
-
-    CommandResult res = CommandResult(text: "");
-    if (_hasJudgePrefix(text)) {
-      res = await Judge.handleCommand(person, target, text);
-    } else {
-      // Не команда "Суд ", ігноруємо всі команди, але якщо повідомлення містить
-      // щось інше (прикріплення: фото..., дії...) — обробляємо його тут:
-
-      // 1. Дайси
-      final diceRes = await _handleDice(message);
-      if (diceRes != null) res = diceRes;
-    }
-
-    if (res.text.isEmpty) return;
-
-    // Цей рядок милиця, але дуже зручно.
-    if (res.text.startsWith("===== Person Debug =====")) res.text += "\nchat ID: ${message.chat.id}";
-    
-    Message? botMsg;
-    // Реєструємо зображення з команди і надсилаємо його користувачеві
-    if (res.hasImage) {
-      final path = person.pollLastGeneratedImage;
-      if (path != null) {
-        botMsg = await teledart.sendPhoto(message.chat.id, io.File(path), caption: res.text);
-      }
-    } else {
-      botMsg = await teledart.sendMessage(message.chat.id, res.text);
-    }
-    
-    if (botMsg != null) {
-      await _deleteTelegramMessagesDelayed(teledart, res, botMsg, message);
-    }
-  });
-} // registerTelegramHandlers
+  // Обробка звичайних повідомлень з префіксом "Суд "
+  teledart.onMessage().listen((msg) => _handleTelegramMessage(teledart, msg, _hasJudgePrefix));
+}
 
 Future<void> _deleteTelegramMessagesDelayed(TeleDart teledart, CommandResult res, Message botMsg, TeleDartMessage message) async {
   // якщо треба – плануємо видалення

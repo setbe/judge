@@ -33,7 +33,7 @@ class AddModerCommand extends Command {
   String get name => "+інспектор";
 
   @override
-  String get slashName => "inspector+";
+  String get slashName => "hire_inspector";
 
   @override
   String get description => "Додати користувачу роль інспектора";
@@ -78,7 +78,7 @@ class SubModerCommand extends Command {
   String get name => "-інспектор";
 
   @override
-  String get slashName => "inspector-";
+  String get slashName => "fire_inspector";
 
   @override
   String get description => "Зняти з користувача роль інспектора";

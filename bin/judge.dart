@@ -7,17 +7,19 @@ class Judge {
   static const maxTextLength = 128; // Максимальна довжина тексту повідомлення від користувача
 
   static Future<Command?> findCommand(String name) async {
+    final toFind = name.toLowerCase();
     try {
-      // Пошук команди за іменем (ігноруємо регістр)
-      final toFind = name.toLowerCase();
-      return Command.all.firstWhere(
-        (cmd) => cmd.name.toLowerCase() == toFind ||
-                 cmd.slashName.toLowerCase() == toFind,
+      final cmd = Command.all.firstWhere(
+        (cmd) =>
+          cmd.name.toLowerCase() == toFind ||
+          toFind.startsWith(cmd.slashName)
       );
+      return cmd;
     } catch (e) {
-      return null; // Команда не знайдена
+      return null;
     }
   }
+
 
   static Future<CommandResult> handleCommand(Person person, Person? target, String input) async {
     CommandResult res = CommandResult(text: "", deleteUserMessageAfterSeconds: 5, deleteBotMessageAfterSeconds: 5);
@@ -33,23 +35,16 @@ class Judge {
     // Команда має бути мінімум з двох частин: "Суд" "..."
     // (хоч телеграм не дозволить відправити "суд ", бо він замінить це на "суд" без пробілу)
     final parts = input.split(" ");
-    if (parts.length < 2) { 
+    final isSlash = input.startsWith("/");
+    
+    if (!isSlash && parts.length < 2) {
       res.text = "❌ Некоректна команда (< 2 частин)";
       return res;
     }
-
-    // 3. Витягування команди та аргументів
-    // Стираємо першу частину "Суд"
-    parts.removeAt(0);
-    // Тепер parts[0] - це ім'я команди, а решта - аргументи
-
-    // Наприклад: "Суд старт" -> cmdName = "старт", args = ""
-    // Або: "Суд адмін щось там" -> cmdName = "адмін", args = "щось там"
-    final cmdName = parts.first.replaceFirst("/", "");
-
-    // Отримуємо Iterable<String> -> List<String> неявною конвертацією.
-    // А також відсікаємо першу частину, бо вона - ім'я команди.
-    final args = parts.skip(1);
+  
+    final cmdName = isSlash ? parts.first.replaceFirst("/", "") :
+                              parts.elementAt(1);
+    final args = parts.skip(1); // завжди пропускаємо ім'я команди
     final cmd = await findCommand(cmdName);
 
     // Якщо не знайдено цільового користувача за повідомленням на яке відповідають
@@ -69,8 +64,7 @@ class Judge {
         status = status.substring(0, 16);
       }
       person.userStatusText = status;
-
-      await UserRepository.instance.updateUser(person);
+      person.save();
       res.text = "";
       return res;
     }

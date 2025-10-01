@@ -25,10 +25,10 @@ class AdminCommand extends Command {
 суд - <кількість>
 
 == Найняти або зняти з посади ==
-/admin+ <@username>
-/admin- <@username>
-/inspector+ <@username>
-/inspector- <@username>
+/hire_admin <@username>
+/fire_admin <@username>
+/hire_inspector <@username> <щоденний ліміт>
+/fire_inspector <@username> <щоденний ліміт>
 суд +адміністратор <@username>
 суд -адміністратор <@username>
 суд +інспектор <@username> <щоденний ліміт>
@@ -44,7 +44,7 @@ class AddAdminCommand extends Command {
   String get name => "+адміністратор";
 
   @override
-  String get slashName => "admin+";
+  String get slashName => "hire_admin";
 
   @override
   String get description => "Додати користувачу роль адміна";
@@ -57,7 +57,7 @@ class AddAdminCommand extends Command {
     if (target == null) return '❌ Помилка: не вказано користувача.';
     if (target.role == Role.admin) return '❌ Помилка: користувач вже є адміном.';
     target.role = Role.admin;
-    await UserRepository.instance.updateUser(target);
+    target.save();
     return '✅ ${target.name(null)} підвищено до посади адміністратора.';
   }
 }
@@ -67,7 +67,7 @@ class SubAdminCommand extends Command {
   String get name => "-адміністратор";
 
   @override
-  String get slashName => "admin-";
+  String get slashName => "fire_admin";
 
   @override
   String get description => "Зняти з користувача роль адміна";
@@ -80,7 +80,7 @@ class SubAdminCommand extends Command {
     if (target == null) return '❌ Помилка: не вказано користувача.';
     if (target.role != Role.admin) return '❌ Помилка: користувач НЕ є адміном.';
     target.role = Role.user;
-    await UserRepository.instance.updateUser(target);
+    target.save();
     return '✅ ${target.name(null)} знято з посади адміністратора.';
   }
 }
