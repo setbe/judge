@@ -86,9 +86,8 @@ class UserRepository {
 
 extension Leaderboards on UserRepository {
   Future<List<Person>> getBestLeaders({int limit = 15}) async {
-    const doNotShowSocialCredits = Person.positiveInfinity;
     final users = _box.values
-      .where((u) => u.socialCredits != doNotShowSocialCredits) // пропускаємо "∞"
+      .where((u) => u.socialCredits < 1000100170) // пропускаємо завеликі
       .toList();
     users.sort((a, b) => b.socialCredits.compareTo(a.socialCredits));
     return users.take(limit).toList();

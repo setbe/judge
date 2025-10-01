@@ -1,6 +1,5 @@
 import '../person.dart';
 import '../command.dart';
-import '../user_repository.dart';
 
 import "whoiam.dart";
 
@@ -45,12 +44,12 @@ class AddSocialCredit extends Command {
         left = positiveAmount; // Вичерпуємо ліміт
       }
       actor.setDailyCreditsLeft(left); // Встановлюємо поточний залишок видачі
-      await UserRepository.instance.updateUser(actor); // Оновлюємо інспектора
+      await actor.save(); // Оновлюємо інспектора
     }
 
     // Проводимо операцію оновлення цільового користувача
     target.addSocialCredits(positiveAmount);
-    await UserRepository.instance.updateUser(target);
+    await target.save();
 
     // Набір частин тексту для виводу
     final strOldCredits = Person.socialCreditsStrFromInt(oldCredits);
@@ -97,13 +96,13 @@ class SubSocialCredit extends Command {
         left = positiveAmount; // Вичерпуємо ліміт
       }
       actor.setDailyCreditsLeft(left); // Встановлюємо поточний залишок видачі
-      await UserRepository.instance.updateUser(actor); // Оновлюємо інспектора
+      await actor.save();
     }
 
     // Проводимо операцію оновлення цільового користувача
     final amount = -positiveAmount; // Переводимо в негативне число, оскільки це команда віднімання
     target.addSocialCredits(amount);
-    await UserRepository.instance.updateUser(target);
+    await target.save();
 
     // Додавання замітки користувачу
     await processFuckUp(target, args);
@@ -124,6 +123,6 @@ class SubSocialCredit extends Command {
 
     target.setFuckUpToday(await target.getFuckUpBySocialCredits(target.socialCredits));
     target.lastSocialCreditNotice = fuckUpMessage;
-    await UserRepository.instance.updateUser(target);
+    await target.save();
   } // processFuckUp
 }

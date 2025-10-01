@@ -93,48 +93,60 @@ Future<(Person, Person?)> handleTelegramUserUpdate(
 
 /// Загальний обробник Telegram-повідомлення
 Future<void> _handleTelegramMessage(TeleDart teledart, TeleDartMessage message, bool Function(String) isCommandCheck) async {
-  if (!EnvService.instance.inWhitelist(message.chat.id, Platform.telegram)) return;
+  try {
+    if (!EnvService.instance.inWhitelist(message.chat.id, Platform.telegram)) return;
 
-  var (person, target) = await handleTelegramUserUpdate(message);
-  final text = message.text ?? "";
+    var (person, target) = await handleTelegramUserUpdate(message);
+    final text = message.text ?? "";
 
-  CommandResult res = CommandResult(text: "");
+    CommandResult res = CommandResult(text: "");
 
-  if (isCommandCheck(text)) {
-    res = await Judge.handleCommand(person, target, text);
-  } else {
-    final diceRes = await _handleDice(message);
-    if (diceRes != null) res = diceRes;
-  }
-
-  if (res.text.isEmpty) return;
-
-  if (res.text.startsWith("===== Person Debug =====")) {
-    res.text += "\nchat ID: ${message.chat.id}";
-  }
-
-  Message? botMsg;
-  if (res.hasImage) {
-    final path = person.pollLastGeneratedImage;
-    if (path != null) {
-      botMsg = await teledart.sendPhoto(message.chat.id, io.File(path), caption: res.text);
+    if (isCommandCheck(text)) {
+      res = await Judge.handleCommand(person, target, text);
+    } else {
+      final diceRes = await _handleDice(message);
+      if (diceRes != null) res = diceRes;
     }
-  } else {
-    botMsg = await teledart.sendMessage(message.chat.id, res.text);
-  }
 
-  if (botMsg != null) {
-    await _deleteTelegramMessagesDelayed(teledart, res, botMsg, message);
+    if (res.text.isEmpty) return;
+
+    if (res.text.startsWith("===== Person Debug =====")) {
+      res.text += "\nchat ID: ${message.chat.id}";
+    }
+
+    Message? botMsg;
+    if (res.hasImage) {
+      final path = person.pollLastGeneratedImage;
+      if (path != null) {
+        botMsg = await teledart.sendPhoto(message.chat.id, io.File(path), caption: res.text);
+      }
+    } else {
+      botMsg = await teledart.sendMessage(message.chat.id, res.text);
+    }
+
+    if (botMsg != null) {
+      await _deleteTelegramMessagesDelayed(teledart, res, botMsg, message);
+    }
+  }
+  catch(e) {
+    return;
   }
 }
 
 /// Реєстрація обробників подій Telegram
 Future<void> _registerTelegramHandlers(TeleDart teledart) async {
   // Обробка /команд
-  teledart.onCommand().listen((msg) => _handleTelegramMessage(teledart, msg, (text) => text.startsWith("/")));
+  teledart.onCommand().listen((msg) =>
+      _handleTelegramMessage(teledart, msg, 
+          (text) => text.startsWith("/")),
+          onError: (e, st) => 
+              print("Stream error: $e\n$st"));
 
   // Обробка звичайних повідомлень з префіксом "Суд "
-  teledart.onMessage().listen((msg) => _handleTelegramMessage(teledart, msg, _hasJudgePrefix));
+  teledart.onMessage().listen((msg) =>
+      _handleTelegramMessage(teledart, msg, _hasJudgePrefix),
+          onError: (e, st) => 
+              print("Stream error: $e\n$st"));
 }
 
 Future<void> _deleteTelegramMessagesDelayed(TeleDart teledart, CommandResult res, Message botMsg, TeleDartMessage message) async {

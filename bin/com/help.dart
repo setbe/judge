@@ -31,6 +31,7 @@ class HelpCommand extends Command {
 
   Future<String> executeFor(Person person) async {
     return """
+Source code: github.com/setbe/judge
 ${person.role == Role.moder ? "Ліміт сьогодні: ${person.dailyCreditsStr} кредитів" : ""}
 Команди:
 🎰

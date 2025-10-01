@@ -1,6 +1,5 @@
 import '../person.dart';
 import '../command.dart';
-import '../user_repository.dart';
 
 class AdminCommand extends Command {
   @override
