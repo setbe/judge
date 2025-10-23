@@ -59,14 +59,17 @@ class Judge {
 
     // 4. Перевірка існування команди
     if (cmd == null) {
+      // Якщо не команда, то вставлюємо актору статус
+      // перші 16 символів з тексту повідомлення
       var status = cmdName;
       if (status.length > 16) {
         status = status.substring(0, 16);
       }
       person.userStatusText = status;
+      // Зберігаємо
       person.save();
-      res.text = "";
-      return res;
+      res.text = ""; // Порожній рядок в результаті
+      return res; // Повертаємо результат з порожнім рядком
     }
     // 5. Перевірка прав користувача
     if (person.role.index < cmd.minRole.index) {

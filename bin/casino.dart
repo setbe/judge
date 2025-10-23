@@ -71,7 +71,7 @@ class CasinoResult {
   bool _randomizeJackpot() {
     var rate = JudgeConfig.instance.casinoJackpotRate;
     if (rate <= 0) rate = 1;
-    final r = Random(DateTime.now().second).nextInt(rate);
+    final r = Random(DateTime.now().millisecond).nextInt(rate);
     return r == 0;
   }
 }
@@ -116,9 +116,9 @@ class Casino {
     int value = diceValue - 1;
     String a, b, c;
     a = casinoEmoji.elementAt(value % 4);
-    value = (value / 4).toInt();
+    value = value ~/ 4;
     b = casinoEmoji.elementAt(value % 4);
-    value = (value / 4).toInt();
+    value = value ~/ 4;
     c = casinoEmoji.elementAt(value % 4);
     return (a, b, c);
   }

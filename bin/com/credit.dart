@@ -18,11 +18,6 @@ class AddSocialCredit extends Command {
 
   @override
   Future<String> execute(Person actor, Person? target, Iterable<String> args) async {
-    // Перевіряємо, чи має користувач достатньо прав
-    if (actor.role.index < Role.moder.index) {
-      return "❌ Помилка: недостатньо прав для виконання цієї команди.";
-    }
-
     // Перевіряємо, чи є цільовий користувач
     if (target == null) return "❌ Помилка: не вказано користувача.";
 
