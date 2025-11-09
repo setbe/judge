@@ -17,7 +17,7 @@ class WhoAmICommand extends Command {
   @override
   int get deleteBotMessageAfterSeconds => 0;
 
-  
+  static String attributePrefix(String from_str) => from_str.isNotEmpty ? "\n" : "";
 
   @override
   Future<String> execute(Person actor, Person? target, Iterable<String> args) async {
@@ -35,11 +35,10 @@ class WhoAmICommand extends Command {
 
     String socialNotice = actor.lastSocialCreditNotice ?? "";
     if (socialNotice.isNotEmpty) socialNotice += "⚬ замітка: $socialNotice";
-    
     // перевірка серії факапів
     final fuckUpStreak = _countFuckUpStreak(actor.fuckUpsPerWeek);
     if (fuckUpStreak >= 4) {
-      socialNotice += "${socialNotice.isNotEmpty ? "\n" : ""}⚠️ ${actor.name(null)} виставляє Партію Платона в негативному руслі вже $fuckUpStreak днів підряд";
+      socialNotice += "${attributePrefix(socialNotice)}⚠️ ${actor.name(null)} виставляє Партію Платона в негативному руслі вже $fuckUpStreak днів підряд";
     }
 
     String gamblingNotice = await getGamblingNotice(actor.casinoStreak);

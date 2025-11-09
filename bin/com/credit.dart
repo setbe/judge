@@ -18,21 +18,13 @@ class AddSocialCredit extends Command {
 
   @override
   Future<String> execute(Person actor, Person? target, Iterable<String> args) async {
-    // Перевіряємо, чи є цільовий користувач
     if (target == null) return "❌ Помилка: не вказано користувача.";
-
-    // Перевіряємо, чи вказано кількість кредитів (другим елементом)
     if (args.isEmpty) return "❌ Помилка: не вказано кількість кредитів.";
+    int positiveAmount = Person.parseSocialCredits(args.first); // Парсимо кількість кредитів
+    if (positiveAmount <= 0) return "❌ Помилка: \"${args.first}\" некоректна кількість кредитів. Може команда /take ?";
+    final oldCredits = target.socialCredits; // Записуємо початковий баланс цілі
 
-    // Парсимо кількість кредитів
-    int positiveAmount = Person.parseSocialCredits(args.first);
-    if (positiveAmount <= 0) return "❌ Помилка: \"${args.first}\" некоректна кількість кредитів.";
-  
-    // Записуємо початковий баланс цілі
-    final oldCredits = target.socialCredits;
-    
-    // Якщо інспектор, перевіряємо ліміт
-    if (actor.role == Role.moder) {
+    if (actor.role == Role.moder) { // Якщо інспектор, перевіряємо ліміт
       int left = actor.dailySocialCreditsLeft - positiveAmount;
       if (positiveAmount > actor.dailySocialCreditsLeft) {
         positiveAmount = actor.dailySocialCreditsLeft; // Обмежуємо до залишку ліміту
@@ -41,7 +33,6 @@ class AddSocialCredit extends Command {
       actor.setDailyCreditsLeft(left); // Встановлюємо поточний залишок видачі
       await actor.save(); // Оновлюємо інспектора
     }
-
     // Проводимо операцію оновлення цільового користувача
     target.addSocialCredits(positiveAmount);
     await target.save();
@@ -69,20 +60,12 @@ class SubSocialCredit extends Command {
 
   @override
   Future<String> execute(Person actor, Person? target, Iterable<String> args) async {
-    // Перевіряємо, чи є цільовий користувач
     if (target == null) return "❌ Помилка: не вказано користувача.";
-
-    // Перевіряємо, чи вказано кількість кредитів (другим елементом)
     if (args.isEmpty) return "❌ Помилка: не вказано кількість кредитів.";
-
-    // Парсимо кількість кредитів
-    int positiveAmount = Person.parseSocialCredits(args.first);
-    // Увага: парсимо лише позитивне число, бо '+' або '-' це перший аргумент, а не частина числа
-    if (positiveAmount <= 0) return "❌ Помилка: \"${args.first}\" некоректна кількість кредитів.";
-  
-    // Записуємо початковий баланс цілі
-    final oldCredits = target.socialCredits;
+    int positiveAmount = Person.parseSocialCredits(args.first); // Парсимо кількість кредитів
+    if (positiveAmount <= 0) return "❌ Помилка: \"${args.first}\" некоректна кількість кредитів. Може, команда /give ?";
     
+    final oldCredits = target.socialCredits; // Записуємо початковий баланс цілі
     // Якщо інспектор, перевіряємо ліміт
     if (actor.role == Role.moder) {
       int left = actor.dailySocialCreditsLeft - positiveAmount;
@@ -93,7 +76,6 @@ class SubSocialCredit extends Command {
       actor.setDailyCreditsLeft(left); // Встановлюємо поточний залишок видачі
       await actor.save();
     }
-
     // Проводимо операцію оновлення цільового користувача
     final amount = -positiveAmount; // Переводимо в негативне число, оскільки це команда віднімання
     target.addSocialCredits(amount);

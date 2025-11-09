@@ -20,7 +20,9 @@ class BestLeaderboardCommand extends Command {
 
   @override
   Future<String> execute(Person actor, Person? target, Iterable<String> args) async {
-    final leaders = await UserRepository.instance.getBestLeaders(limit: 15);
+    int limit = 15;
+    if (args.isNotEmpty) limit = int.tryParse(args.first) ?? 15;
+    final leaders = await UserRepository.instance.getBestLeaders(limit: limit);
 
     if (leaders.isEmpty) return "Немає даних.";
 
@@ -52,9 +54,12 @@ class WorstLeaderboardCommand extends Command {
 
   @override
   Future<String> execute(Person actor, Person? target, Iterable<String> args) async {
-    final leaders = await UserRepository.instance.getWorstLeaders(limit: 15);
+    int limit = 15;
+    if (args.isNotEmpty) limit = int.tryParse(args.first) ?? 15;
+    final leaders = await UserRepository.instance.getWorstLeaders(limit: limit);
 
     if (leaders.isEmpty) return "Немає даних.";
+    
 
     final buffer = StringBuffer("⬇️👎 Партія розчарована ними:\n");
     for (var i = 0; i < leaders.length; i++) {

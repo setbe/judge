@@ -50,8 +50,7 @@ class UserRepository {
 
     var user = _box.get(telegramId);
     if (user == null) {
-      final role = (username == ownerUsername)
-          ? Role.admin : Role.user;
+      final role = (username == ownerUsername) ? Role.admin : Role.user;
       user = Person(
           id:       telegramId,
           name:     name,
@@ -65,9 +64,7 @@ class UserRepository {
 
   Future<void> updateUser(Person p) async {
     final key = p.telegramId ?? p.discordId;
-    if (key != null) {
-      await _box.put(key, p);
-    }
+    if (key != null) await _box.put(key, p);
   }
 
   /// Знаходить користувача за username і платформою

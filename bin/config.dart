@@ -41,7 +41,7 @@ class JudgeConfig {
     _casinoRewardHigh   = 20000;
     _casinoRewardMedium = 7500;
     _casinoRewardLow    = 1000;
-    _casinoUserCooldownHours = 20;
+    _casinoUserCooldownHours = 16;
     _casinoJackpotRate = 10;
 
     _initialized = true;
