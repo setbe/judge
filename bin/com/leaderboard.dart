@@ -29,7 +29,7 @@ class BestLeaderboardCommand extends Command {
     final buffer = StringBuffer("🏆 Ними пишається партія:\n");
     for (var i = 0; i < leaders.length; i++) {
       final p = leaders[i];
-      buffer.writeln("${i + 1}. ${p.name(null)} — ${p.socialCreditsStr}");
+      buffer.writeln("${i + 1}. ${p.name(null)} — ${p.telegramUsername ?? "None"} — ${p.socialCreditsStr}");
     }
 
     return buffer.toString();
@@ -64,7 +64,7 @@ class WorstLeaderboardCommand extends Command {
     final buffer = StringBuffer("⬇️👎 Партія розчарована ними:\n");
     for (var i = 0; i < leaders.length; i++) {
       final p = leaders[i];
-      buffer.writeln("${i + 1}. ${p.name(null)} — ${p.socialCreditsStr}");
+      buffer.writeln("${i + 1}. ${p.name(null)} — ${p.telegramUsername ?? "None"} — ${p.socialCreditsStr}");
     }
 
     return buffer.toString();
