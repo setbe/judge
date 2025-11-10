@@ -1,6 +1,14 @@
-# https://dart.dev/guides/libraries/private-files
-# Created by `dart pub`
-.dart_tool/
 .env
-data/users.hive
-data/users.lock
+__pycache__
+data/*
+hehbot/__pycache__
+hehbot/decoration/__pycache__
+
+img/changed_credit/*
+img/credits/*
+img/history/highscore.png
+img/history/lowscore.png
+img/history/users/*
+img/slot_machine/users/*
+img/highscore.jpeg
+img/lowscore.jpeg
