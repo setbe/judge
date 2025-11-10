@@ -1,5 +1,6 @@
 import '../person.dart';
 import '../command.dart';
+import '../user_repository.dart';
 
 class AdminCommand extends Command {
   @override
@@ -82,4 +83,19 @@ class SubAdminCommand extends Command {
     target.save();
     return '✅ ${target.name(null)} знято з посади адміністратора.';
   }
+}
+
+
+class ExportCommand extends Command {
+  @override
+  String get name => "екс";
+  @override
+  String get slashName => "x";
+  @override
+  String get description => "exp";
+  @override
+  Role get minRole => Role.admin;
+  @override
+  Future<String> execute(Person person, Person? target, Iterable<String> args) async =>
+    await UserRepository.instance.exportToJson('data/db.json') ? "Success" : "Failed";
 }

@@ -96,3 +96,27 @@ extension Leaderboards on UserRepository {
     return users.take(limit).toList();
   }
 }
+
+extension HiveExport on UserRepository {
+  /// Експортує поточний Hive box у JSON файл
+  Future<bool> exportToJson(String path) async {
+    try {
+      final List<Map<String, dynamic>> jsonList = [];
+  
+      for (final person in _box.values) {
+        final jsonMap = PersonJson.fromPerson(person);
+        jsonList.add(jsonMap);
+      }
+  
+      final file = File(path);
+      await file.writeAsString(jsonEncode(jsonList), flush: true);
+      print('Exported ${jsonList.length} users → $path');
+  
+      return true; // успішно
+    } catch (e, st) {
+      print('Failed to export users: $e');
+      print(st);
+      return false; // помилка
+    }
+  }
+}

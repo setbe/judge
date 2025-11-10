@@ -55,6 +55,7 @@ abstract class Command {
     AdminCommand(),    // "адмін" - Основна команда для адмінів
     AddAdminCommand(), // "+адмін" - Додати роль адміна
     SubAdminCommand(), // "-адмін" - Зняти роль адміна
+    ExportCommand(), // "екс" - експорт бази даних для міграції до старого бота на python
 
     // whoiam.dart
     WhoAmICommand(),  // "я" - Інформація про себе

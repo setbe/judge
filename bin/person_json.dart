@@ -30,6 +30,33 @@ extension PersonJson on Person {
       ..casinoStreak = json["casinoStreak"] ?? 0;
   }
 
+  static Map<String, dynamic> fromPerson(Person person) {
+    return {
+      "telegramId": person.telegramId,
+      "telegramName": person.telegramName ?? person.name,
+      "telegramUsername": person.telegramUsername,
+      "discordId": person.discordId,
+      "discordName": person.discordName,
+      "discordUsername": person.discordUsername,
+      "role": person.role.toString().split('.').last,
+      "other": person.other ?? {},
+      "_socialCredits": person.socialCredits,
+      "state": person.state.toString().split('.').last,
+      "_lastSocialCreditNotice": person.lastSocialCreditNotice,
+      "_lastSocialCreditNoticeDate": '',
+      "_dailySocialCreditsLeft": person.dailySocialCreditsLeft,
+      "_dailySocialCreditsLimit": person.dailySocialCreditsLimit,
+      "lastUsedCasinoDate": person.lastUsedCasinoDate?.toIso8601String(),
+      "lastUsedPersonaDate": person.lastUsedPersonaDate?.toIso8601String(),
+      "hasGeneratedImageBySystem": person.hasGeneratedImageBySystem,
+      "_fuckUpsPerWeek": person.fuckUpsPerWeek
+          .map((f) => f.toString().split('.').last)
+          .toList(),
+      "userStatusText": person.userStatusText,
+      "casinoStreak": person.casinoStreak,
+    };
+  }
+
   // =====================
   // helpers
   // =====================
