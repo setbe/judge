@@ -86,7 +86,7 @@ async def verify_user(msg: types.Message) -> Person | None:
         return None
     
     # chat id in whitelist
-    if env.is_telegram_allowed(msg.chat.id) :
+    if not env.is_telegram_allowed(msg.chat.id):
         await msg.answer("Цей чат не зареєстрований в системі.")
         print(f'намагалися писати в чаті: {msg.chat.id}')
         return None
