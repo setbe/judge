@@ -11,7 +11,7 @@ from scipy.spatial.distance import cosine
 from hehbot import hehbot_utils
 
 from hehbot.gpt import GPT
-from hehbot.env_service import envService
+from hehbot.env_service import env
 
 sys.path.append(str(Path(__file__).parent.parent / 'hehbot'))
 
@@ -68,9 +68,14 @@ class BotCommand:
         if command:
             arguments = [part for part in parts if not part.startswith("/")]
             by_str = ' '.join(arguments)
-            return await command.execute(msg, arguments, by_str)  # Припускаємо, що команда визначена як функція
+            return await command.execute(msg, arguments, by_str)
 
         return None
+    
+    @staticmethod
+    def count_commands(text) -> int:
+        pattern = re.compile(r"/(\w+)(?:@(\w+))?\s*(.*)")
+        return len(pattern.findall(text))
 
     @staticmethod
     def get_commands_description():
@@ -144,13 +149,13 @@ class BotCommand:
     
     @staticmethod
     async def save_embeddings_to_file(embeddings_dict) -> None:
-        with open('data/embeddings.json', 'w') as file:
+        with open('{}/embeddings.json'.format(env.data_path), 'w') as file:
             json.dump(embeddings_dict, file)
 
     @staticmethod
     async def load_embeddings_from_file() -> dict:
         try:
-            with open('data/embeddings.json', 'r') as file:
+            with open('{}/embeddings.json'.format(env.data_path), 'r') as file:
                 embeddings_dict = json.load(file)
                 return embeddings_dict
         except FileNotFoundError:

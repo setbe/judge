@@ -1,5 +1,5 @@
 # global variables
-from mbot import api, telegram_bot, telegram_dispatcher, discord_bot
+from hehbot.env_service import bot, dp, env
 
 # commands
 from hehbot.command import BotCommand 

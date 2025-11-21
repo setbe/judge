@@ -7,7 +7,7 @@ import base64
 
 from hehbot.memory import repo_msg, ChatMessage
 from hehbot.client import repo_user
-from hehbot import telegram_bot, api
+from hehbot import bot, env
 
 from openai import OpenAIError
 from requests.exceptions import RequestException
@@ -15,7 +15,7 @@ from requests.exceptions import RequestException
 from openai import AsyncOpenAI
 
 class GPT:
-    client = AsyncOpenAI(api_key=api.chatgpt)
+    client = AsyncOpenAI(api_key=env.chatgpt_token)
     chat_completion = None
     model = "gpt-4.1-nano-2025-04-14"
 
@@ -193,7 +193,7 @@ class ConversationMessage:
 class ConversationRepository:
     MAX_MESSAGES_IN_DB = 40  # максимальна кількість повідомлень у базі
 
-    def __init__(self, db_path='data/conversation.db'):
+    def __init__(self, db_path='{}/conversation.db'.format(env.data_path)):
         self.db_path = db_path
         self._create_table()
 
@@ -286,10 +286,10 @@ class ConversationRepository:
         else:
             platformText = 'в Telegram чаті "Кайфо-хата Платона"'
 
-        text = '''Ти Кайфо-суддя з Ace Attorney, який відповідає коротко як інтернет-користувач, мінімально пишучи в наш вайбовий чатик.
-Якщо коротко, ти - ліва рука диктатора і ютубера Платона Дубашидзе ''', platformText, '''.
+        text = '''Ти Кайфо-суддя з Ace Attorney, який відповідає коротко як інтернет-користувач, мінімально пишучи в наш вайбовий чатик, в якому є казино з соц. кредитами через емоджі 🎰 .
+Якщо коротко, ти - ліва рука диктатора і ютубера Платона Дубашидзе {}.
 Найхайповіші ігри - Persona, Devil May Cry, NiER тощо. Відомі люди - Yoko Taro, Hideo Kojima, Sam Lake, Todd Howard (skyrim), Peter Douglas Molyneux тощо.
-'''
+'''.format(platformText)
         sys_msg = ConversationMessage(0, text, 'system', group_id, 999999999)
         repo_conversation.add_message(sys_msg)
         

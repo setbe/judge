@@ -1,7 +1,8 @@
 import json, os
+from hehbot.env_service import env
 
 class HehConfig:
-    def __init__(self, config_file='data/config.json'):
+    def __init__(self, config_file='{}/config.json'.format(env.data_path)):
         self.config_file = config_file
         self.config = {}
 

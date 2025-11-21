@@ -3,6 +3,7 @@ import random
 import sqlite3
 import time
 import hashlib
+from hehbot.env_service import env
 
 class PlatformVerifier:
     def __init__(self, telegram_name: str, discord_name: str) -> None:
@@ -30,7 +31,7 @@ class PlatformVerifier:
 
 class PlatformDatabase:
     def __init__(self):
-        self.connection = sqlite3.connect('data/verification.db')
+        self.connection = sqlite3.connect('{}/verification.db'.format(env.data_path))
         self.cursor = self.connection.cursor()
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS verifications (

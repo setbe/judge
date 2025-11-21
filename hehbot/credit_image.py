@@ -12,7 +12,7 @@ import os
 from hehbot.discord_integration import discord_repo, DiscordPerson
 from hehbot.hehbot_utils import person_by_msg_async, target_in_replied_msg_async
 from hehbot.client import repo_user, Person
-from hehbot import telegram_bot, discord_bot
+from hehbot.env_service import bot
 
 def is_similar_to_green(color: tuple[int, int, int]) -> bool:
     green_rgb = (0, 255, 0)
@@ -81,7 +81,7 @@ async def get_dominant_color_async(image_bytes, brightness_adjustment=False) -> 
         
 async def get_avatar_id_async(person: Person) -> str | None:
     try:
-        photos = await telegram_bot.get_user_profile_photos(person.id)
+        photos = await bot.get_user_profile_photos(person.id)
         if photos.photos:
             # Вибираємо останню фотографію (найновішу)
             photo = photos.photos[0][0]
@@ -123,14 +123,14 @@ async def download_profile_photo_async(person: Person) -> BytesIO | None:
         if ava:
             # Отримуємо файл
             try:
-                file = await telegram_bot.get_file(ava)
+                file = await bot.get_file(ava)
                 print('file: ' + str(file))
             except:
                 return await get_default_avatar()
             # Завантажуємо файл
             file_path = file.file_path
             print('file path: ' + file_path)
-            file_content = await telegram_bot.download_file(file_path)
+            file_content = await bot.download_file(file_path)
             print('file content: ' + str(file_content))
             if isinstance(file_content, BytesIO):  # Перевіряємо, чи це об'єкт BytesIO
                 file_content = file_content.getvalue()  # Якщо так, читаємо байти

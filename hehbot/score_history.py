@@ -14,6 +14,7 @@ import numpy as np
 import io
 from collections import defaultdict, Counter
 from datetime import timedelta
+from hehbot.env_service import env
 
 
 def make_gradient(axis, color1, color2, direction='vertical'):
@@ -110,7 +111,7 @@ class IScoreHistoryRepository(ABC):
         pass
 
 class ScoreHistoryRepository(IScoreHistoryRepository):
-    def __init__(self, db_path: str = 'data/score_history.db'):
+    def __init__(self, db_path: str = '{}/score_history.db'.format(env.data_path)):
         self.db_path = db_path
         self._create_table()
 

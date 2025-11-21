@@ -4,7 +4,7 @@ from hehbot.admin import repo_staff, StaffPerson
 from hehbot.discord_integration import DiscordPerson, discord_repo
 from hehbot.score_history import plot_user_history, plot_top_history
 from hehbot.credit_image import send_credit_image, send_highscore_image, send_lowscore_image, send_changed_credit_image
-from hehbot import telegram_bot, discord_bot, telegram_dispatcher
+from hehbot.env_service import bot, dp
 from hehbot.heh_config import heh_config
 from hehbot.hehbot_utils import find_username, find_number, target_in_replied_msg_async, person_by_msg_async
 
@@ -863,7 +863,7 @@ class HelpCommand(BotCommand):
         
         if isinstance(msg, aiogram.types.Message):
             try:
-                await telegram_bot.send_message(msg.from_user.id, text)
+                await bot.send_message(msg.from_user.id, text)
             except:
                 await msg.reply('Відпиши мені в ПП, я туди кину.')
 
@@ -920,11 +920,12 @@ class SystemTextCommand(BotCommand):
         prompt = remove_court_and_username(by_str)
         prompt = prompt.strip()
 
-        if len(prompt) > 200:
-            return 'Текст занадто довгий. Максимальна довжина - 200 символів.'
+        max_system_text_len = 500
+        if len(prompt) > max_system_text_len:
+            return 'Текст занадто довгий. Максимальна довжина - {} символів.'.format(max_system_text_len)
 
         if len(prompt) < 7:
-            latest_system_msgs = repo_conversation.get_system_messages(group_id)
+            latest_system_msgs = repo_conversation.get_messages(group_id)
             ret = []
             for m in latest_system_msgs:
                 if m.lifetime < 100:
@@ -1017,12 +1018,14 @@ class RateUserCommand(BotCommand):
         prompt = prompt_start + prompt_body
 
         from hehbot import repo_msg
-        from hehbot.memory import ChatMessageRepository, ChatMessage
-        chat_messages = await ChatMessageRepository.get_history_from_telegram_or_discord_async(msg, 10)
+        from hehbot.memory import ChatMessage, repo_msg
         
-        group_id = msg.chat.id if isinstance(msg, aiogram.types.Message) else msg.channel.id
+        if isinstance(msg, aiogram.types.Message):
+            group_id = msg.chat.id 
+        elif isinstance(msg, discord.Message):
+            group_id = msg.channel.id
         user_number = target.number if isinstance(target, Person) else target.user_number
-
+        chat_messages = repo_msg.get_all_messages_by_group(group_id, 10)
         
 
         if isinstance(chat_messages, list):
@@ -1275,7 +1278,7 @@ async def safe_send_dice(chat_id: int, emoji: str):
     """Функція для безпечної відправки кубика."""
 
     try:
-        msg = await telegram_bot.send_dice(chat_id, emoji=emoji)
+        msg = await bot.send_dice(chat_id, emoji=emoji)
         return msg
     except TelegramRetryAfter as e:
         print(f"Спроба перевищила ліміт, чекаємо {e.retry_after} секунд.")
@@ -1288,7 +1291,7 @@ async def safe_send_text(chat_id: int, text: str, parse_mode = None):
     """Функція для безпечної відправки тексту."""
 
     try:
-        msg = await telegram_bot.send_message(chat_id, text=text)
+        msg = await bot.send_message(chat_id, text=text)
         return msg
     
     except TelegramRetryAfter as e:
@@ -1303,7 +1306,7 @@ async def safe_answer_callback_query(callback_query_id):
     """Функція для безпечної відповіді на запит зворотного виклику."""
 
     try:
-        callback = await telegram_bot.answer_callback_query(callback_query_id)
+        callback = await bot.answer_callback_query(callback_query_id)
         return callback
     
     except TelegramRetryAfter as e:
@@ -1314,7 +1317,7 @@ async def safe_answer_callback_query(callback_query_id):
     except TelegramAPIError as e:
         print(f"Сталася помилка Telegram API: {e}")
 
-@telegram_dispatcher.callback_query(lambda c: c.data and c.data.startswith('accept'))
+@dp.callback_query(lambda c: c.data and c.data.startswith('accept'))
 async def handle_accept(callback_query: aiogram.types.CallbackQuery):
     """Обробник для прийняття ставки."""
 
@@ -1352,7 +1355,7 @@ async def handle_accept(callback_query: aiogram.types.CallbackQuery):
     person = repo_user.by_telegram(user_id)
 
     # Оновлення тексту повідомлення ставки, повідомляючи, що ставку прийнято
-    await telegram_bot.delete_message(chat_id=chat_id, message_id=bet_message_id)
+    await bot.delete_message(chat_id=chat_id, message_id=bet_message_id)
 
     await safe_send_text(chat_id=chat_id, text=f"Ставку прийнято користувачем {target.fullname} (@{target.name}).", parse_mode='HTML')
     
@@ -1435,7 +1438,7 @@ async def handle_accept(callback_query: aiogram.types.CallbackQuery):
 {person.fullname} має {person.score} і отримує {person_credits}
 {target.fullname} має {target.score} і отримує {target_credits}''', parse_mode='html')
 
-@telegram_dispatcher.callback_query(lambda c: c.data and c.data.startswith('ignore'))
+@dp.callback_query(lambda c: c.data and c.data.startswith('ignore'))
 async def handle_ignore(callback_query: aiogram.types.CallbackQuery):
     await safe_answer_callback_query(callback_query.id)
     _, user_id, target_id, chat_id, bet_message_id = callback_query.data.split(':')
@@ -1447,15 +1450,51 @@ async def handle_ignore(callback_query: aiogram.types.CallbackQuery):
     try:
         await safe_send_text(chat_id, text=f"Ставку проігноровано користувачем.", parse_mode='HTML')
         # Оновлення тексту повідомлення ставки, повідомляючи, що ставку ігнорують
-        await telegram_bot.delete_message(chat_id=chat_id, message_id=bet_message_id)
+        await bot.delete_message(chat_id=chat_id, message_id=bet_message_id)
 
     except TelegramRetryAfter as e:
         print(f"Спроба перевищила ліміт, чекаємо {e.retry_after} секунд.")
         await asyncio.sleep(e.retry_after)  # Чекаємо рекомендований час
-        await telegram_bot.edit_message_text(chat_id=chat_id, message_id=bet_message_id,
+        await bot.edit_message_text(chat_id=chat_id, message_id=bet_message_id,
             text=f"Ставку проігноровано користувачем.", parse_mode='HTML')
 
+class AdminCommand(BotCommand):
+    """
+    Команда допомоги для адмінів (список команд).
+    """
+
+    ignore = True
+
+    @classmethod
+    def command_name(cls) -> str:
+        return "admin"
+
+    @classmethod
+    async def execute(self, msg, args, by_str: str = None):
+
+        result_person = await person_by_msg_async(msg)
+        if result_person.error:
+            return self.execute_stopped(result_person.error)
+        p = result_person.result
+        # Перевіряємо, чи користувач є адміністратором
+        staff = repo_staff.get_by_number(p.number)
+        if not (staff and staff.admin):
+            return None
         
+        return '''
+число_прав (0 - для інспектора, 1 - для голови)
+новий:  /new_admin  @username  число_прав  максимальна_щоденна_видача_кредитів(якщо інспектор)
+видалити:  /delete_admin  @username
+список:  /admin_list
+видалити користувача назовсім з БД:  /delete_user  @username(або айді особи)
+
+інші команди:
+/забудь
+/rate
+/system
+/system <текст>
+'''
+
 
 # Ініціалізація команд
     
@@ -1469,8 +1508,8 @@ idi_nakhuy_command = IdiNakhuyCommand()
 jackpot_chance_command = JackpotChanceCommand()
 score_history_command = ScoreHistoryCommand()
 
-connect_command = ConnectCommand()
-verify_command = VerifyCommand()
+# connect_command = ConnectCommand()
+# verify_command = VerifyCommand()
 
 # mod command
 change_credit_command = SetCreditCommand()
@@ -1483,3 +1522,4 @@ add_admin_command = AddAdminCommand()
 delete_admin_command = DeleteAdminCommand()
 admin_list_command = GetAdminListCommand()
 delete_user_command = DeleteUserCommand()
+admin_command = AdminCommand() # довідка-допомога

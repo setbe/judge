@@ -11,6 +11,7 @@ class StaffPerson:
 import sqlite3
 from abc import ABC, abstractmethod
 from typing import List
+from hehbot.env_service import env
 
 class ITGStaffPersonRepository(ABC):
     @abstractmethod
@@ -113,4 +114,4 @@ class TGStaffPersonRepository(ITGStaffPersonRepository):
         conn.commit()
         conn.close()
 
-repo_staff = TGStaffPersonRepository('data/staff.db')
+repo_staff = TGStaffPersonRepository('{}/staff.db'.format(env.data_path))

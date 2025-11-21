@@ -2,6 +2,7 @@ import sqlite3
 import discord, requests
 from discord.ext import commands
 from hehbot.hehbot_utils import rgb_to_hex
+from hehbot.env_service import env
 
 class DiscordPerson():
     def __init__(self, 
@@ -149,4 +150,4 @@ class DiscordPersonRepository(IDiscordPersonRepository):
 
         conn.close()
 
-discord_repo = DiscordPersonRepository('data/discord.db')
+discord_repo = DiscordPersonRepository('{}/discord.db'.format(env.data_path))

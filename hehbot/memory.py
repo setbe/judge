@@ -6,8 +6,8 @@ import discord
 from functools import singledispatchmethod
 from dateutil import parser
 
+from hehbot.env_service import env, bot
 from hehbot.client import Person, repo_user
-from hehbot import telegram_bot
 
 class ChatMessage:
     def __init__(self, text, date, tg_group, tg, user_number):
@@ -75,46 +75,9 @@ class ChatMessageRepository:
                 )
             ''')
             conn.commit()
-
-    @staticmethod
-    async def get_history_from_telegram_or_discord_async(msg, limit = 20) -> list[ChatMessage]:
-        '''
-        Отримання історії повідомлень з Telegram або Discord
-        '''
-        total_messages = []
-
-        if isinstance(msg, aiogram.types.Message):
-        # Telegram Message
-            async def get_messages(chat_id, limit = limit) -> list[ChatMessage]:
-                offset_id = 0  # ID повідомлення для пагінації
-
-                while True:
-                    messages = await telegram_bot.get_updates(chat_id=chat_id, limit=limit, offset=offset_id)
-                    if not messages:
-                        break
-                    total_messages.extend(messages)
-                    offset_id = messages[-1].message_id + 1
-        
-            tg_messages = await get_messages(msg.chat.id)
-            for tg_msg in tg_messages:
-                print('tg msg text: ', tg_msg.text)
-                total_messages.append(await ChatMessage.from_telegram_async(tg_msg))
-
-        elif isinstance(msg, discord.Message):
-        # Discord Message
-            from hehbot import discord_bot
-
-            async def get_messages(channel_id, limit = limit) -> list[ChatMessage]:
-                channel = discord_bot.get_channel(channel_id)
-                history = await channel.history(limit=limit).flatten()
-
-                for message in history:
-                    print('discord msg text: ', message.content)
-                    total_messages.append(await ChatMessage.from_discord_async(message))
-        return total_messages
         
 
-    async def add_message(self, msg: ChatMessage):
+    async def add(self, msg: ChatMessage):
         n = msg.user_number
         tg = msg.tg if hasattr(msg, 'tg') else -1
         tg_group = msg.tg_group if hasattr(msg, 'tg_group') else -1
@@ -156,7 +119,7 @@ class ChatMessageRepository:
                 messages.append(ChatMessage(text=row[3], date=row[4], tg_group=row[2], tg=row[1], user_number=row[0]))
             return messages
         
-    async def can_send_message(self, user_number: int, group_id: int, sec_cooldown: int) -> bool:
+    async def can_send(self, user_number: int, group_id: int, sec_cooldown: int) -> bool:
         async with aiosqlite.connect(self.db_path) as conn:
             async with conn.execute('''
                 SELECT message_date FROM chat_messages
@@ -178,4 +141,4 @@ class ChatMessageRepository:
         return True
         
 
-repo_msg = ChatMessageRepository('data/msg.db')
+repo_msg = ChatMessageRepository('{}/msg.db'.format(env.data_path))

@@ -6,7 +6,7 @@ from random import randint
 from collections import Counter
 from PIL import Image, ImageFont, ImageDraw
 
-from hehbot import telegram_dispatcher
+from hehbot.env_service import dp
 import aiogram, asyncio
 from aiogram import F
 from aiogram.enums import DiceEmoji
@@ -155,7 +155,7 @@ def decode_slot_machine_value(value: int) -> list[str]:
         value //= 4
     return result
 
-@telegram_dispatcher.message(
+@dp.message(
     F.dice[F.emoji == DiceEmoji.SLOT_MACHINE].value.cast(decode_slot_machine_value).as_("slots")
 )
 async def handle_slot_machine(msg: Message, slots: list[str]):
@@ -175,4 +175,4 @@ async def handle_slot_machine(msg: Message, slots: list[str]):
             await msg.reply('Почекаєш до наступної доби (до 06:00)')
     else:
         if not person:
-            await msg.reply('Я не можу тебе додати в базу даних, бо в тебе немає нікнейму або імені в профілі.')
+            await msg.reply('Я не можу тебе додати в базу даних через внутрішню помилку.')

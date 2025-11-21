@@ -4,6 +4,7 @@ from typing import List
 import discord.ext
 import discord.ext.commands
 from hehbot.admin import repo_staff
+from hehbot.env_service import env
 from enum import Enum
 
 from hehbot.discord_integration import discord_repo, DiscordPerson
@@ -474,5 +475,5 @@ class PersonRepository(IPersonRepository):
         conn.commit()
         conn.close()
     
-repo_user = PersonRepository('data/user.db')
+repo_user = PersonRepository('{}/user.db'.format(env.data_path))
 
