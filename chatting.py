@@ -68,6 +68,8 @@ async def verify_user(msg: types.Message) -> Person | None:
         return None
     
     # check if message is command
+    if len(msg.text) < 5:
+        return None
     first4symbols = msg.text[0:4].lower()
     has_prefix = first4symbols.startswith('суд')
     fourth_symbol_contains_space = first4symbols[3] == ' '
