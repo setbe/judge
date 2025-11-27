@@ -436,10 +436,6 @@ async def send_lowscore_image(msg: aiogram.types.Message, limit: int = 5):
 
     for u in users:
         credit_img_filename = f"img/credits/{str(u.number)}.jpeg"
-        if os.path.exists(credit_img_filename):
-            output_path = credit_img_filename
-            image_paths.append(output_path)
-
         if not os.path.exists(credit_img_filename): # Створюємо зображення персон
             credit_img_filename = await create_credit_image_async(u)
             
