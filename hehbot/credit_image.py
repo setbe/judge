@@ -402,7 +402,7 @@ async def send_highscore_image(msg, limit=5):
         credit_img_filename = f"img/credits/{str(u.number)}.jpeg"
         print("id: " + str(u.number), "\tname: " + u.fullname, "\tscore: " + str(u.score))
         if not os.path.exists(credit_img_filename): # Створюємо зображення персон
-            create_credit_image_async(u)
+            credit_img_filename = await create_credit_image_async(u)
 
         if os.path.exists(credit_img_filename): # Додаткова перевірка
             output_path = credit_img_filename
@@ -441,7 +441,7 @@ async def send_lowscore_image(msg: aiogram.types.Message, limit: int = 5):
             image_paths.append(output_path)
 
         if not os.path.exists(credit_img_filename): # Створюємо зображення персон
-            create_credit_image_async(u)
+            credit_img_filename = await create_credit_image_async(u)
             
         if os.path.exists(credit_img_filename): # Додаткова перевірка
             output_path = credit_img_filename
