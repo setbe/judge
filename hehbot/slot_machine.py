@@ -81,13 +81,13 @@ async def send_slot_machine(msg: aiogram.types.Message, slots: list[str]):
     amount = 0
     # Перевірка на спеціальні комбінації
     if slots == ["🍋", "🍋", "🍋"] or slots == ["🅱️", "🅱️", "🅱️"]:
-        amount = -CASINO_WIN3
+        amount = -CASINO_WIN3 # -25k
         if await is_jackpot():
-            amount = -CASINO_WIN4
+            amount = -CASINO_WIN4 # -100k
     elif slots == ["🍇", "🍇", "🍇"] or slots == ["7️⃣", "7️⃣", "7️⃣"]:
-        in_row = CASINO_WIN3
+        amount = CASINO_WIN3 # 25k
         if await is_jackpot():
-            amount = CASINO_WIN4
+            amount = CASINO_WIN4 # 100k
     elif has_two_in_a_row(slots, ["🍋", "🅱️"]):
         amount = -CASINO_WIN2
     elif has_two_in_a_row(slots, ["🍇", "7️⃣"]):
@@ -132,12 +132,25 @@ async def send_slot_machine(msg: aiogram.types.Message, slots: list[str]):
     elif amount == 0:
         return 'Отакої! Отримано 0 кредитів! Нова спроба завтра'
     
-    if amount >= CASINO_WIN0 or amount <= -CASINO_WIN0:
-        img_path = await draw_slot_machine_image_async(user.id, amount, randomized_score)
-        if img_path:
-            await msg.reply_photo(aiogram.types.FSInputFile(img_path), caption= f'Нова спроба завтра. {balance_str}')
-            await repo_user.update_person_async(user.number, score=user.score + randomized_score)
-            return None
+    # Якщо виграш або програш менше 5000 -> просто пишемо текст
+    if abs(amount) < CASINO_WIN1:
+        await msg.reply(
+            f"Отримано {randomized_score} соціальних кредитів! Нова спроба завтра.\n"
+            f"(Новий баланс: {user.score + randomized_score})"
+        )
+        await repo_user.update_person_async(user.number, score=user.score + randomized_score)
+        return
+    
+    # Якщо >= 5000 -> малюємо картинку
+    img_path = await draw_slot_machine_image_async(user.id, amount, randomized_score)
+    if img_path:
+        await msg.reply_photo(
+            aiogram.types.FSInputFile(img_path),
+            caption=f'Нова спроба завтра. {balance_str}'
+        )
+        await repo_user.update_person_async(user.number, score=user.score + randomized_score)
+        return
+
     await msg.reply(f'Отримано {randomized_score} соціальних кредитів за вашу гру! Нова спроба завтра. {balance_str}')
         
     await repo_user.update_person_async(user.number, score=user.score + randomized_score)
